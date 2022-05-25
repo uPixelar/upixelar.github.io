@@ -1,22 +1,24 @@
+//Coded by Omer C. => https://upixelar.github.io
 
-//Global Variables
+//DOM Elements
 var gamebox = document.getElementById("gamebox");
-var opponent = document.getElementById("opponent");
+var player1 = document.getElementById("player1");
+var player2 = document.getElementById("player2")
 var button = document.getElementById("game_button");
-var settings = document.getElementById("game_settings");
+var background = document.getElementById("background");
+var result = document.getElementById("result");
 
 function createLine(typ){
     var line = document.createElement("div");
     line.classList.add("line");
     line.classList.add(typ);
     gamebox.appendChild(line);
-    return line;
 }
 
 //Game variables
-var firstP = true; //Lefthand side's turn
+var turn = 0; //0-player1, 1-player2
 var started = false; //Is game started?
-var aimode = false; //Is AI selected?
+var players = [false, false];//false-player, true-AI
 
 //Constants
 const playbtn = "▶";
@@ -33,6 +35,7 @@ var map = [
     [0, 0, 0]
 ];
 
+//Function to check if an array has only value v
 function onlyHas(arr, v){
     for(let i=0; i<3; i++){
         if(arr[i] != v) return false;
@@ -42,28 +45,35 @@ function onlyHas(arr, v){
 
 //Start button function
 function startGame(){
+    result.classList.add("hidden");
     button.onclick = endGame;//Change button's listener to endGame func.
     button.innerText = stopbtn;//Change button's text to stop emoji
-    opponent.disabled = true;//Disabled opponent selection(player/ai)
+    player1.disabled = true;
+    player2.disabled = true;
     document.querySelectorAll(".line").forEach(ele => ele.remove())//Remove all lines
-    aimode = opponent.value=="ai";
+    players = [player1.value=="ai", player2.value=="ai"]
     started = true;
-    firstP = true; //Start by Lefthand side(X)
+    turn = 0; //ply1's turn
+    background.innerText = "X";
     map = [[0, 0, 0],[0, 0, 0],[0, 0, 0]];//Reset map
     //Empty all squares
     for(let i=0; i<gamebox.children.length; i++) gamebox.children[i].innerText = "";
+
+    if(players[0]) aiPlay();
 }
 
 //Stop button function
 function endGame(data){
     button.onclick = startGame;
     button.innerText = playbtn;
-    opponent.disabled = false;
+    player1.disabled = false;
+    player2.disabled = false;
     started = false;
 
     if(data && !data.isTrusted){//draw finishing line and winner's name
-        if(data == "draw") console.log("It's draw");
-        else console.log(data+" wins.")
+        if(data == "draw") result.innerText = "DRAW";
+        else result.innerText = data+" WINS";
+        result.classList.remove("hidden");
     }
 }
 
@@ -127,8 +137,9 @@ function calculateEndGame(){
 }
 
 //Place in array and ui
-function place(i, j, v){
+function place(i, j){
     if(map[i][j] != 0) return;
+    let v = turn==0?"X":"O";
     map[i][j] = v;
     gamebox.children[j+i*3].innerText = v;
     if(v == "O"){
@@ -136,18 +147,19 @@ function place(i, j, v){
     }else{
         playAudio("ping");
     }
-    firstP = !firstP;//end of placing
+    turn = Math.abs(turn-1);//end of placing
     let endgamedata = calculateEndGame();
     if(endgamedata){
         endGame(endgamedata);
         return;
     };
-
-    if(aimode && !firstP) setTimeout(aiPlay, 250);
+    background.innerText = turn==0?"X":"O";
+    if(started && players[turn]) setTimeout(aiPlay, 300);
 }
 
-//AI's turn
+//AI's turn, LATEST DEEP LEARNING RANDOMIZER!
 function aiPlay(){
+    if(!started) return;
     var indexes = [];
     for(let i=0; i<3; i++){
         for(let j=0; j<3; j++){
@@ -155,13 +167,13 @@ function aiPlay(){
         }
     }
     var index = indexes[Math.random()*indexes.length >> 0];
-    place(index[0], index[1], "O");
+    place(index[0], index[1]);
 }
 
 //Handle player move
 function playerClick(i, j){
-    if(aimode && !firstP) return; //If its aimode and not lefthand turn, return
-    place(i, j, firstP?"X":"O")
+    if(players[turn]) return; //
+    place(i, j)
 }
 
 //Handle square clicks

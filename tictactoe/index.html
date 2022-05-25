@@ -11,13 +11,19 @@
 </head>
 
 <body>
+    <div class="background">
+        <span id="background">#</span>
+    </div>
     <div class="game_wrapper">
         <div id="game_settings">
-            <span class="game_player">PLAYER</span>
+            <select class="game_player" id="player1">
+                <option value="player">PLAYER</option>
+                <option value="ai">AI</option>
+            </select>
 
             <button id="game_button">▶</button>
 
-            <select class="game_player" name="opponent" id="opponent">
+            <select class="game_player" id="player2">
                 <option value="player">PLAYER</option>
                 <option value="ai">AI</option>
             </select>
@@ -32,6 +38,7 @@
             <span class="game_square"></span>
             <span class="game_square"></span>
             <span class="game_square"></span>
+            <span class="hidden" id="result">DRAW</span>
         </div>
     </div>
 
